@@ -28,7 +28,7 @@ Default export folder: `~/news_crawler_output`
 ### Windows
 
 ```powershell
-cd f:\IBD_TEAM\Maxym\web-tool
+cd /repo/path
 uv sync
 uv run playwright install chromium
 uv run news-crawler
