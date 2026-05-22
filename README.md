@@ -75,6 +75,25 @@ Optional **Date** range (search bar) is passed to DuckDuckGo only. Search status
 
 Click result rows to add or remove articles from the **Queue** tab; export runs only from the Queue tab.
 
+## Build executable
+
+One script builds a native app for the OS you run it on (build on each target platform separately).
+
+```bash
+uv sync
+python compile.py
+```
+
+Options: `--onefile` (single file), `--clean`, `--name NAME`, `--output-dir DIR`. Extra PyInstaller flags after `--`, e.g. `python compile.py -- --debug all`.
+
+| OS | Default output |
+|----|----------------|
+| Windows | `dist/news-crawler/news-crawler.exe` |
+| macOS | `dist/news-crawler.app` |
+| Linux | `dist/news-crawler/news-crawler` |
+
+After installing the built app, install Playwright Chromium once on that machine (`uv run playwright install chromium`; on Linux add `install-deps` if needed).
+
 ## Tests
 
 ```bash
