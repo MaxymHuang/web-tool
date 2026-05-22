@@ -48,14 +48,38 @@ uv run news-crawler
 
 ## Usage
 
-1. Enter a search prompt and click **Search**.
-2. Review results in the table; uncheck sources you do not want.
-3. Choose an output folder and click **Export Selected**.
+1. Enter a search prompt and choose a **Market** (English US, Japanese, or Taiwan).
+2. Optionally change **Display language** for UI labels and Excel column headers.
+3. Click **Search**.
+4. Review results in the table; uncheck sources you do not want.
+5. Choose an output folder and click **Export Selected**.
+
+### Markets
+
+| Market | DuckDuckGo region | Typical sources |
+|--------|-------------------|-----------------|
+| English (US) | `us-en` | International / US news |
+| Japanese | `jp-jp` | NHK, Yahoo Japan, Nikkei, Asahi, etc. |
+| Traditional Chinese (Taiwan) | `tw-tzh` | UDN, CNA, Liberty Times, ETtoday, etc. |
+
+### Search prompts (multilingual)
+
+Prompts accept **English**, **Japanese**, or **Traditional Chinese** (UTF-8). Results are shown in **DuckDuckGo News return order** with no local re-ranking or filtering.
+
+Optional **Date** range (search bar) is passed to DuckDuckGo only. Search status appears in the window status bar at the bottom.
 
 ## Output
 
-- `news_results_<timestamp>.xlsx` — columns: No., メディア, 揭載タイトル, URL
-- `screenshots/` — one PNG per selected article (`001.png`, `002.png`, …)
+- `news_results_<timestamp>.xlsx` — localized columns: No., Media, Title, URL, Market
+- `screenshots/` — one PNG per queued article (`001.png`, `002.png`, …)
+
+Click result rows to add or remove articles from the **Queue** tab; export runs only from the Queue tab.
+
+## Tests
+
+```bash
+uv run pytest tests/
+```
 
 ## Notes
 

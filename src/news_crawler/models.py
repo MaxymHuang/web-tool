@@ -7,7 +7,9 @@ class ArticleResult:
     url: str
     snippet: str
     media: str = ""
-    score: float = 0.0
-    selected: bool = True
+    queued: bool = False
     summary: str = ""
     screenshot_path: str = ""
+    market: str = ""
+    published_at: str = ""
+    published_ts: float | None = None

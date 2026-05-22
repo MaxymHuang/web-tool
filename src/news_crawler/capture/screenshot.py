@@ -25,10 +25,11 @@ def slugify(text: str, max_len: int = 40) -> str:
     return (slug[:max_len] if slug else "") or "page"
 
 
-def capture_url_to_file(url: str, output_path: Path) -> tuple[bool, str]:
+def capture_url_to_file(url: str, output_path: Path, locale: str | None = None) -> tuple[bool, str]:
     """Capture a full-page screenshot (must run in main process or subprocess)."""
     output_path = output_path.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    page_locale = locale or browser_locale()
 
     try:
         with sync_playwright() as playwright:
@@ -39,7 +40,7 @@ def capture_url_to_file(url: str, output_path: Path) -> tuple[bool, str]:
             context = browser.new_context(
                 user_agent=http_user_agent(),
                 viewport={"width": 1280, "height": 900},
-                locale=browser_locale(),
+                locale=page_locale,
             )
             page = context.new_page()
             try:
@@ -70,16 +71,23 @@ def capture_url_to_file(url: str, output_path: Path) -> tuple[bool, str]:
         return False, str(exc)
 
 
-def capture_url_subprocess(url: str, output_path: Path) -> tuple[bool, str]:
+def capture_url_subprocess(
+    url: str,
+    output_path: Path,
+    locale: str | None = None,
+) -> tuple[bool, str]:
     """Run Playwright in a child process (safe when called from a QThread)."""
+    cmd = [
+        sys.executable,
+        "-m",
+        "news_crawler.capture.screenshot",
+        url,
+        str(output_path.resolve()),
+    ]
+    if locale:
+        cmd.append(locale)
     result = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "news_crawler.capture.screenshot",
-            url,
-            str(output_path.resolve()),
-        ],
+        cmd,
         capture_output=True,
         text=True,
         timeout=SUBPROCESS_TIMEOUT_SEC,
@@ -95,6 +103,9 @@ def capture_url_subprocess(url: str, output_path: Path) -> tuple[bool, str]:
 class ScreenshotCapture:
     """Captures screenshots via subprocess (compatible with Qt worker threads)."""
 
+    def __init__(self, locale: str | None = None) -> None:
+        self._locale = locale
+
     def start(self) -> None:
         pass
 
@@ -102,14 +113,15 @@ class ScreenshotCapture:
         pass
 
     def capture(self, url: str, output_path: Path) -> tuple[bool, str]:
-        return capture_url_subprocess(url, output_path)
+        return capture_url_subprocess(url, output_path, locale=self._locale)
 
 
 def _cli_main() -> None:
     if len(sys.argv) < 3:
-        print("Usage: python -m news_crawler.capture.screenshot <url> <output.png>")
+        print("Usage: python -m news_crawler.capture.screenshot <url> <output.png> [locale]")
         sys.exit(2)
-    ok, err = capture_url_to_file(sys.argv[1], Path(sys.argv[2]))
+    locale = sys.argv[3] if len(sys.argv) > 3 else None
+    ok, err = capture_url_to_file(sys.argv[1], Path(sys.argv[2]), locale=locale)
     if not ok:
         print(err, file=sys.stderr)
         sys.exit(1)
