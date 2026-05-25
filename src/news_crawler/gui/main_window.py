@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
         self._process_worker: ProcessWorker | None = None
 
         central = QWidget()
+        central.setObjectName("appCentral")
         self.setCentralWidget(central)
         root = QVBoxLayout(central)
         root.setContentsMargins(16, 16, 16, 16)
@@ -50,62 +51,76 @@ class MainWindow(QMainWindow):
 
         self._search_group = QGroupBox()
         search_layout = QVBoxLayout(self._search_group)
+        search_layout.setContentsMargins(8, 8, 8, 8)
+        search_layout.setSpacing(10)
 
-        prompt_row = QHBoxLayout()
         self._prompt_label = QLabel()
-        prompt_row.addWidget(self._prompt_label)
+        search_layout.addWidget(self._prompt_label)
         self._prompt_input = QPlainTextEdit()
         self._prompt_input.setMaximumHeight(96)
         self._prompt_input.setMinimumHeight(56)
-        prompt_row.addWidget(self._prompt_input, stretch=1)
-        search_layout.addLayout(prompt_row)
+        search_layout.addWidget(self._prompt_input)
 
-        opts_row = QHBoxLayout()
+        opts_row_primary = QHBoxLayout()
+        opts_row_primary.setSpacing(12)
+        opts_row_primary.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+
         self._max_results_label = QLabel()
-        opts_row.addWidget(self._max_results_label)
+        opts_row_primary.addWidget(self._max_results_label)
         self._max_results = QSpinBox()
         self._max_results.setRange(5, 30)
         self._max_results.setValue(15)
-        opts_row.addWidget(self._max_results)
+        self._max_results.setMinimumWidth(64)
+        opts_row_primary.addWidget(self._max_results)
 
         self._market_label = QLabel()
-        opts_row.addWidget(self._market_label)
+        opts_row_primary.addWidget(self._market_label)
         self._market_combo = QComboBox()
+        self._market_combo.setMinimumWidth(140)
         for market_id in MARKET_IDS:
             self._market_combo.addItem("", market_id)
         self._market_combo.currentIndexChanged.connect(self._on_market_changed)
-        opts_row.addWidget(self._market_combo)
+        opts_row_primary.addWidget(self._market_combo)
 
         self._language_label = QLabel()
-        opts_row.addWidget(self._language_label)
+        opts_row_primary.addWidget(self._language_label)
         self._language_combo = QComboBox()
+        self._language_combo.setMinimumWidth(120)
         for lang_id in UI_LANGUAGES:
             self._language_combo.addItem("", lang_id)
         self._language_combo.currentIndexChanged.connect(self._on_language_changed)
-        opts_row.addWidget(self._language_combo)
+        opts_row_primary.addWidget(self._language_combo)
+        opts_row_primary.addStretch()
+        search_layout.addLayout(opts_row_primary)
+
+        opts_row_secondary = QHBoxLayout()
+        opts_row_secondary.setSpacing(12)
+        opts_row_secondary.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self._filter_date_label = QLabel()
-        opts_row.addWidget(self._filter_date_label)
+        opts_row_secondary.addWidget(self._filter_date_label)
         self._date_combo = QComboBox()
+        self._date_combo.setMinimumWidth(120)
         for tl in TIMELIMIT_CHOICES:
             self._date_combo.addItem("", tl)
-        opts_row.addWidget(self._date_combo)
+        opts_row_secondary.addWidget(self._date_combo)
 
         self._filter_news_label = QLabel()
-        opts_row.addWidget(self._filter_news_label)
+        opts_row_secondary.addWidget(self._filter_news_label)
         self._news_pref_combo = QComboBox()
+        self._news_pref_combo.setMinimumWidth(160)
         self._news_pref_combo.addItem("", False)
         self._news_pref_combo.addItem("", True)
-        opts_row.addWidget(self._news_pref_combo)
+        opts_row_secondary.addWidget(self._news_pref_combo)
 
-        opts_row.addStretch()
+        opts_row_secondary.addStretch()
 
         self._search_btn = QPushButton()
         self._search_btn.setDefault(True)
         self._search_btn.clicked.connect(self._on_search)
-        opts_row.addWidget(self._search_btn)
+        opts_row_secondary.addWidget(self._search_btn)
 
-        search_layout.addLayout(opts_row)
+        search_layout.addLayout(opts_row_secondary)
         root.addWidget(self._search_group)
 
         self._tabs = QTabWidget()
@@ -134,9 +149,10 @@ class MainWindow(QMainWindow):
         queue_page = QWidget()
         queue_outer = QVBoxLayout(queue_page)
         queue_outer.setContentsMargins(10, 10, 10, 10)
-        queue_outer.setSpacing(0)
+        queue_outer.setSpacing(8)
 
         queue_btn_row = QHBoxLayout()
+        queue_btn_row.setSpacing(8)
         self._remove_queue_btn = QPushButton()
         self._remove_queue_btn.clicked.connect(self._on_remove_from_queue)
         self._remove_queue_btn.setEnabled(False)
@@ -149,12 +165,14 @@ class MainWindow(QMainWindow):
         queue_btn_row.addStretch()
         queue_outer.addLayout(queue_btn_row)
 
-        queue_splitter = QSplitter()
-        queue_splitter.setOrientation(Qt.Orientation.Vertical)
+        queue_splitter = QSplitter(Qt.Orientation.Vertical)
+        queue_splitter.setHandleWidth(6)
+        queue_splitter.setChildrenCollapsible(False)
 
         queue_list_host = QWidget()
         queue_list_layout = QVBoxLayout(queue_list_host)
-        queue_list_layout.setContentsMargins(0, 8, 0, 0)
+        queue_list_layout.setContentsMargins(0, 0, 0, 4)
+        queue_list_layout.setSpacing(0)
         self._queue_table = QueueTableWidget(ui_lang=self._ui_lang)
         self._queue_table.selection_changed.connect(self._update_queue_buttons)
         queue_list_layout.addWidget(self._queue_table)
@@ -162,8 +180,12 @@ class MainWindow(QMainWindow):
 
         self._export_group = QGroupBox()
         export_layout = QVBoxLayout(self._export_group)
+        export_layout.setContentsMargins(8, 8, 8, 8)
+        export_layout.setSpacing(8)
 
         folder_row = QHBoxLayout()
+        folder_row.setSpacing(8)
+        folder_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self._output_folder_label = QLabel()
         folder_row.addWidget(self._output_folder_label)
         self._output_dir = QLineEdit()
@@ -175,6 +197,7 @@ class MainWindow(QMainWindow):
         export_layout.addLayout(folder_row)
 
         action_row = QHBoxLayout()
+        action_row.setSpacing(8)
         self._export_btn = QPushButton()
         self._export_btn.clicked.connect(self._on_export)
         self._export_btn.setEnabled(False)
@@ -198,20 +221,21 @@ class MainWindow(QMainWindow):
 
         self._log = QPlainTextEdit()
         self._log.setReadOnly(True)
-        self._log.setMaximumHeight(80)
+        self._log.setMinimumHeight(64)
+        self._log.setMaximumHeight(100)
         self._log.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 11px;")
         export_layout.addWidget(self._log)
 
         queue_splitter.addWidget(self._export_group)
         queue_splitter.setStretchFactor(0, 3)
-        queue_splitter.setStretchFactor(1, 1)
+        queue_splitter.setStretchFactor(1, 2)
+        queue_splitter.setSizes([280, 200])
         queue_outer.addWidget(queue_splitter, stretch=1)
         self._tabs.addTab(queue_page, "")
 
         root.addWidget(self._tabs, stretch=1)
 
         search_status = self.statusBar()
-        search_status.setStyleSheet(f"color: {TEXT_SECONDARY};")
         self._search_status_label = QLabel()
         search_status.addWidget(self._search_status_label, stretch=1)
         self._search_progress = QProgressBar()

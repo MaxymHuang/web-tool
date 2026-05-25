@@ -17,22 +17,50 @@ QUEUED_BORDER = "#43a047"
 SELECTED_BG = "#e3f2fd"
 
 APP_STYLESHEET = f"""
-QMainWindow, QWidget {{
+QMainWindow {{
+    background-color: #ebebeb;
     color: {TEXT_PRIMARY};
     font-size: 13px;
+}}
+QWidget {{
+    color: {TEXT_PRIMARY};
+    font-size: 13px;
+}}
+QWidget#appCentral {{
+    background-color: #ebebeb;
+}}
+QStatusBar {{
+    background: {SURFACE};
+    color: {TEXT_SECONDARY};
+    border-top: 1px solid {BORDER};
+}}
+QStatusBar QLabel {{
+    background: transparent;
+    color: {TEXT_SECONDARY};
 }}
 QGroupBox {{
     font-weight: 600;
     border: 1px solid {BORDER};
     border-radius: 6px;
-    margin-top: 10px;
-    padding: 12px 10px 10px 10px;
+    margin-top: 18px;
+    padding: 20px 12px 12px 12px;
     background: {SURFACE};
+    color: {TEXT_PRIMARY};
 }}
 QGroupBox::title {{
     subcontrol-origin: margin;
-    left: 10px;
+    subcontrol-position: top left;
+    left: 12px;
+    top: 4px;
     padding: 0 6px;
+    color: {TEXT_PRIMARY};
+    background: {SURFACE};
+}}
+QSpinBox {{
+    min-width: 56px;
+}}
+QComboBox {{
+    min-width: 120px;
 }}
 QPlainTextEdit, QLineEdit, QComboBox, QSpinBox {{
     border: 1px solid {BORDER};

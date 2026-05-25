@@ -9,8 +9,82 @@ import sys
 from pathlib import Path
 
 
+SCREENSHOT_WORKER_SUFFIX = "-screenshot"
+
+
+def is_frozen_app() -> bool:
+    return getattr(sys, "frozen", False)
+
+
+def screenshot_worker_basename(main_exe_stem: str | None = None) -> str:
+    stem = main_exe_stem or Path(sys.executable).stem
+    if stem.endswith(SCREENSHOT_WORKER_SUFFIX):
+        return stem
+    return f"{stem}{SCREENSHOT_WORKER_SUFFIX}"
+
+
+def frozen_screenshot_worker_path() -> Path | None:
+    """Sibling headless binary shipped inside a PyInstaller bundle."""
+    if not is_frozen_app():
+        return None
+    exe_dir = Path(sys.executable).resolve().parent
+    name = screenshot_worker_basename()
+    candidate = exe_dir / (f"{name}.exe" if sys.platform == "win32" else name)
+    return candidate if candidate.is_file() else None
+
+
+def screenshot_subprocess_command(
+    url: str,
+    output_path: Path,
+    locale: str | None = None,
+) -> list[str]:
+    """Build argv for a screenshot child process (dev vs frozen bundle)."""
+    resolved = str(output_path.resolve())
+    worker = frozen_screenshot_worker_path()
+    if worker is not None:
+        cmd = [str(worker), url, resolved]
+    else:
+        cmd = [sys.executable, "-m", "news_crawler.capture.screenshot", url, resolved]
+    if locale:
+        cmd.append(locale)
+    return cmd
+
+
+def bundled_browsers_path() -> Path | None:
+    """Path to Playwright browsers shipped inside a frozen app bundle."""
+    if not is_frozen_app():
+        return None
+    exe = Path(sys.executable).resolve()
+    if sys.platform == "darwin" and exe.parent.name == "MacOS":
+        return exe.parent.parent / "Resources" / "ms-playwright"
+    sibling = exe.parent / "ms-playwright"
+    if sibling.is_dir():
+        return sibling
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        candidate = Path(meipass) / "ms-playwright"
+        if candidate.is_dir():
+            return candidate
+    return None
+
+
+def configure_playwright_for_bundle() -> None:
+    """Point Playwright at bundled Chromium when running as a frozen app."""
+    path = bundled_browsers_path()
+    if path is None:
+        return
+    if not path.is_dir():
+        print(
+            f"warning: bundled Playwright browsers not found at {path}",
+            file=sys.stderr,
+        )
+        return
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(path)
+
+
 def configure_platform() -> None:
     """Apply OS-specific settings before Qt / Playwright start."""
+    configure_playwright_for_bundle()
     system = platform.system()
     if system == "Darwin":
         os.environ.setdefault("QT_MAC_WANTS_LAYER", "1")

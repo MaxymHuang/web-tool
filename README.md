@@ -92,7 +92,7 @@ Options: `--onefile` (single file), `--clean`, `--name NAME`, `--output-dir DIR`
 | macOS | `dist/news-crawler.app` |
 | Linux | `dist/news-crawler/news-crawler` |
 
-After installing the built app, install Playwright Chromium once on that machine (`uv run playwright install chromium`; on Linux add `install-deps` if needed).
+`compile.py` bundles Playwright Chromium into the app (`Contents/Resources/ms-playwright` on macOS). Rebuild after upgrading Playwright in `pyproject.toml`.
 
 ## Tests
 

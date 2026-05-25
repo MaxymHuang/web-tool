@@ -10,6 +10,7 @@ from news_crawler.platform_support import (
     browser_locale,
     http_user_agent,
     playwright_launch_args,
+    screenshot_subprocess_command,
     subprocess_run_kwargs,
 )
 
@@ -77,15 +78,7 @@ def capture_url_subprocess(
     locale: str | None = None,
 ) -> tuple[bool, str]:
     """Run Playwright in a child process (safe when called from a QThread)."""
-    cmd = [
-        sys.executable,
-        "-m",
-        "news_crawler.capture.screenshot",
-        url,
-        str(output_path.resolve()),
-    ]
-    if locale:
-        cmd.append(locale)
+    cmd = screenshot_subprocess_command(url, output_path, locale)
     result = subprocess.run(
         cmd,
         capture_output=True,
