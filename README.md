@@ -54,7 +54,10 @@ uv run news-crawler
 2. Optionally change **Display language** for UI labels and Excel column headers.
 3. Click **Search**.
 4. Review results in the table; uncheck sources you do not want.
-5. Choose an output folder and click **Export Selected**.
+5. In the Queue tab, choose output folder and **Adblock strategy**:
+   - `A` Layered native blocking (filter-lists + cookie/popup shielding + cosmetic cleanup)
+   - `C` Reader-mode screenshot (article extraction rendered as clean reading page)
+6. Click **Export Queue**.
 
 ### Markets
 
@@ -106,7 +109,8 @@ uv run pytest tests/
 
 - DuckDuckGo news search is unofficial; empty results or rate limits may occur — wait and retry or lower max results.
 - Some sites block automated access; screenshots may fail for those URLs (see the log panel).
-- Screenshot exports apply always-on clutter blocking (ads, consent banners, popups, and common overlays) using bundled filter lists plus cookie-dialog shielding. Empty ad placeholders (grey boxes after network blocking) are collapsed before capture. Run `uv run python scripts/fetch_filter_lists.py` to refresh full EasyList/Japan lists; `compile.py` fetches them automatically before building. Some hard paywalls and anti-bot pages may still appear.
+- Screenshot exports support two strategies (`A/C`) from the Queue tab. `A` is the default and matches prior behavior (always-on clutter blocking with filter lists + cookie shielding). `C` produces reader-mode screenshots and intentionally does not preserve original site layout.
+- Run `uv run python scripts/fetch_filter_lists.py` to refresh EasyList/EasyPrivacy/Japan/Fanboy lists.
 
 ## License
 

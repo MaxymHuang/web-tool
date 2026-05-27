@@ -2,6 +2,10 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
+from news_crawler.capture.adblock_strategy import (
+    AdblockStrategy,
+    DEFAULT_ADBLOCK_STRATEGY,
+)
 from news_crawler.capture.screenshot import ScreenshotCapture
 from news_crawler.export.excel import export_to_excel
 from news_crawler.i18n import t
@@ -21,6 +25,7 @@ class ProcessWorker(QThread):
         output_dir: Path,
         ui_lang: str = "en",
         browser_locale: str | None = None,
+        adblock_strategy: AdblockStrategy = DEFAULT_ADBLOCK_STRATEGY,
         parent=None,
     ) -> None:
         super().__init__(parent)
@@ -28,6 +33,7 @@ class ProcessWorker(QThread):
         self._output_dir = output_dir
         self._ui_lang = ui_lang
         self._browser_locale = browser_locale
+        self._adblock_strategy = adblock_strategy
         self._cancelled = False
 
     def cancel(self) -> None:
@@ -41,7 +47,10 @@ class ProcessWorker(QThread):
         screenshots_dir = self._output_dir / "screenshots"
         screenshots_dir.mkdir(parents=True, exist_ok=True)
         total = len(self._articles)
-        capture = ScreenshotCapture(locale=self._browser_locale)
+        capture = ScreenshotCapture(
+            locale=self._browser_locale,
+            adblock_strategy=self._adblock_strategy,
+        )
 
         try:
             capture.start()

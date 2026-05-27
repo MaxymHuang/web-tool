@@ -8,3 +8,6 @@ test_output/
 *.xlsx
 *.log
 *.DS_Store
+*.png
+*.json
+*src/news_crawler/capture/

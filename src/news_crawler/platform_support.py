@@ -37,6 +37,7 @@ def screenshot_subprocess_command(
     url: str,
     output_path: Path,
     locale: str | None = None,
+    adblock_strategy: str | None = None,
 ) -> list[str]:
     """Build argv for a screenshot child process (dev vs frozen bundle)."""
     resolved = str(output_path.resolve())
@@ -47,12 +48,15 @@ def screenshot_subprocess_command(
         cmd = [sys.executable, "-m", "news_crawler.capture.screenshot", url, resolved]
     if locale:
         cmd.append(locale)
+    if adblock_strategy:
+        cmd.extend(["--adblock-strategy", adblock_strategy])
     return cmd
 
 
 def screenshot_subprocess_batch_command(
     manifest_path: Path,
     locale: str | None = None,
+    adblock_strategy: str | None = None,
 ) -> list[str]:
     worker = frozen_screenshot_worker_path()
     resolved_manifest = str(manifest_path.resolve())
@@ -68,6 +72,8 @@ def screenshot_subprocess_batch_command(
         ]
     if locale:
         cmd.extend(["--locale", locale])
+    if adblock_strategy:
+        cmd.extend(["--adblock-strategy", adblock_strategy])
     return cmd
 
 

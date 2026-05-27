@@ -25,6 +25,11 @@ from news_crawler.gui.styles import TEXT_MUTED, TEXT_SECONDARY
 
 from news_crawler.gui.queue_table import QueueTableWidget
 from news_crawler.gui.results_table import ResultsTableWidget
+from news_crawler.capture.adblock_strategy import (
+    ADBLOCK_STRATEGIES,
+    DEFAULT_ADBLOCK_STRATEGY,
+    normalize_adblock_strategy,
+)
 from news_crawler.i18n import MARKET_IDS, MARKETS, UI_LANGUAGES, market_label, t
 from news_crawler.models import ArticleResult
 from news_crawler.platform_support import default_output_dir
@@ -195,6 +200,22 @@ class MainWindow(QMainWindow):
         self._browse_btn.clicked.connect(self._browse_output)
         folder_row.addWidget(self._browse_btn)
         export_layout.addLayout(folder_row)
+
+        strategy_row = QHBoxLayout()
+        strategy_row.setSpacing(8)
+        strategy_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self._adblock_strategy_label = QLabel()
+        strategy_row.addWidget(self._adblock_strategy_label)
+        self._adblock_strategy_combo = QComboBox()
+        self._adblock_strategy_combo.setMinimumWidth(280)
+        for strategy in ADBLOCK_STRATEGIES:
+            self._adblock_strategy_combo.addItem("", strategy)
+        self._adblock_strategy_combo.setCurrentIndex(
+            ADBLOCK_STRATEGIES.index(DEFAULT_ADBLOCK_STRATEGY)
+        )
+        strategy_row.addWidget(self._adblock_strategy_combo)
+        strategy_row.addStretch()
+        export_layout.addLayout(strategy_row)
 
         action_row = QHBoxLayout()
         action_row.setSpacing(8)
@@ -386,6 +407,9 @@ class MainWindow(QMainWindow):
         self._clear_queue_btn.setText(t(lang, "clear_queue"))
         self._export_group.setTitle(t(lang, "queue_group"))
         self._output_folder_label.setText(t(lang, "output_folder"))
+        self._adblock_strategy_label.setText(t(lang, "adblock_strategy_label"))
+        self._adblock_strategy_combo.setItemText(0, t(lang, "adblock_strategy_a"))
+        self._adblock_strategy_combo.setItemText(1, t(lang, "adblock_strategy_c"))
         self._browse_btn.setText(t(lang, "browse_btn"))
         self._export_btn.setText(t(lang, "export_btn"))
         self._cancel_btn.setText(t(lang, "cancel_btn"))
@@ -434,6 +458,7 @@ class MainWindow(QMainWindow):
         self._queue_table.setEnabled(not exporting)
         self._output_dir.setEnabled(not exporting)
         self._browse_btn.setEnabled(not exporting)
+        self._adblock_strategy_combo.setEnabled(not exporting)
         self._remove_queue_btn.setEnabled(not exporting and len(self._queue) > 0)
         self._clear_queue_btn.setEnabled(not exporting and len(self._queue) > 0)
 
@@ -516,11 +541,15 @@ class MainWindow(QMainWindow):
         self._progress.setValue(0)
 
         market = MARKETS.get(self._current_market_id(), MARKETS["en"])
+        adblock_strategy = normalize_adblock_strategy(
+            self._adblock_strategy_combo.currentData()
+        )
         self._process_worker = ProcessWorker(
             queued,
             output,
             ui_lang=self._ui_lang,
             browser_locale=market.browser_locale,
+            adblock_strategy=adblock_strategy,
             parent=self,
         )
         self._process_worker.progress.connect(self._on_process_progress)
