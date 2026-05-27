@@ -1,6 +1,8 @@
 # News Crawler Tool
 
-PySide6 desktop app: search news via DuckDuckGo, review ranked results, select sources, then export to Excel with full-page screenshots.
+A crawler tool that assists user to search for news report and ouputs to excel with full-page screenshots
+
+Originally made this tool for my girlfriend who did all that work manually
 
 Works on **macOS** (Intel and Apple Silicon), **Windows**, and **Linux**.
 
