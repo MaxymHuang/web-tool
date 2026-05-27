@@ -1,6 +1,6 @@
 [project]
 name = "news-crawler"
-version = "0.2.0"
+version = "0.3.0"
 description = "Search news, select sources, export to Excel with screenshots"
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
