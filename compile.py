@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent
 ENTRY = ROOT / "src" / "news_crawler" / "main.py"
 SCREENSHOT_ENTRY = ROOT / "src" / "news_crawler" / "capture" / "screenshot_worker.py"
 SRC = ROOT / "src"
+FILTER_LISTS_DIR = SRC / "news_crawler" / "capture" / "filter_lists"
 DEFAULT_NAME = "news-crawler"
 SCREENSHOT_SUFFIX = "-screenshot"
 PLAYWRIGHT_STAGING = ROOT / "build" / "playwright-browsers"
@@ -38,12 +39,16 @@ HIDDEN_IMPORTS = [
     "playwright",
     "playwright.sync_api",
     "httpx",
+    "adblock",
+    "playwright_cookie_blocker",
 ]
 
 WORKER_HIDDEN_IMPORTS = [
     "news_crawler.capture.screenshot",
     "playwright",
     "playwright.sync_api",
+    "adblock",
+    "playwright_cookie_blocker",
 ]
 
 
@@ -148,6 +153,11 @@ def pyinstaller_argv(
 
     if collect_pyside6:
         cmd.extend(["--collect-all", "PySide6"])
+
+    if FILTER_LISTS_DIR.is_dir():
+        sep = ";" if platform.system() == "Windows" else ":"
+        data_spec = f"{FILTER_LISTS_DIR}{sep}news_crawler/capture/filter_lists"
+        cmd.extend(["--add-data", data_spec])
 
     if extra:
         cmd.extend(extra)
@@ -318,6 +328,24 @@ def print_post_build(system: str, name: str, onedir: bool) -> None:
         print("If macOS blocks the app, allow it in System Settings → Privacy & Security.")
 
 
+def fetch_filter_lists() -> None:
+    """Download full EasyList sets before bundling (falls back to committed starters)."""
+    script = ROOT / "scripts" / "fetch_filter_lists.py"
+    if not script.is_file():
+        print(f"warning: {script} not found, using committed filter_lists/", file=sys.stderr)
+        return
+    print("Fetching adblock filter lists ...")
+    result = subprocess.run(
+        ["uv", "run", "python", str(script)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print(
+            "warning: filter list download failed; using committed filter_lists/",
+            file=sys.stderr,
+        )
+
+
 def main() -> None:
     args = parse_args()
     system = detect_os()
@@ -328,6 +356,7 @@ def main() -> None:
 
     require_uv()
     validate_project()
+    fetch_filter_lists()
 
     print(f"Target OS: {os_label(system)} ({system})")
     print(f"Project:   {ROOT}")

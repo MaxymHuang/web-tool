@@ -22,7 +22,6 @@ def _ddg_text_search(
     merged: list[dict] = []
     seen_urls: set[str] = set()
     page = 1
-
     while len(merged) < max_results and page <= 3:
         page_raw: list[dict] = []
         page_error: str | None = None
@@ -115,17 +114,16 @@ def search_news(
     timelimit = filters.ddg_timelimit
     query = prompt if not filters.prefer_news else f"{prompt} news"
 
-    raw, news_error = fetch_news_results(
+    raw, _news_error = fetch_news_results(
         query,
         region=region,
         max_results=max_results,
         timelimit=timelimit,
     )
-    text_error: str | None = None
 
     if len(raw) < max_results:
         remaining = max_results - len(raw)
-        text_raw, text_error = _ddg_text_search(
+        text_raw, _text_error = _ddg_text_search(
             query,
             region=region,
             max_results=remaining,

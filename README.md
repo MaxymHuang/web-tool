@@ -106,6 +106,7 @@ uv run pytest tests/
 
 - DuckDuckGo news search is unofficial; empty results or rate limits may occur — wait and retry or lower max results.
 - Some sites block automated access; screenshots may fail for those URLs (see the log panel).
+- Screenshot exports apply always-on clutter blocking (ads, consent banners, popups, and common overlays) using bundled filter lists plus cookie-dialog shielding. Empty ad placeholders (grey boxes after network blocking) are collapsed before capture. Run `uv run python scripts/fetch_filter_lists.py` to refresh full EasyList/Japan lists; `compile.py` fetches them automatically before building. Some hard paywalls and anti-bot pages may still appear.
 
 ## License
 

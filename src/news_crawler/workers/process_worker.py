@@ -1,4 +1,3 @@
-import time
 from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
@@ -46,11 +45,9 @@ class ProcessWorker(QThread):
 
         try:
             capture.start()
+            jobs: list[tuple[str, Path]] = []
+            shot_paths: list[Path] = []
             for index, article in enumerate(self._articles, start=1):
-                if self._cancelled:
-                    self.finished_cancelled.emit()
-                    return
-
                 title_preview = article.title[:60]
                 self.progress.emit(
                     index,
@@ -63,20 +60,26 @@ class ProcessWorker(QThread):
                         title=title_preview,
                     ),
                 )
-
                 filename = f"{index:03d}.png"
                 shot_path = screenshots_dir / filename
-                ok, err = capture.capture(article.url, shot_path)
+                jobs.append((article.url, shot_path))
+                shot_paths.append(shot_path)
+
+            if self._cancelled:
+                self.finished_cancelled.emit()
+                return
+
+            ok_list, err_list = capture.capture_many(jobs)
+            for index, article in enumerate(self._articles):
+                ok = ok_list[index] if index < len(ok_list) else False
+                err = err_list[index] if index < len(err_list) else "Unknown capture error"
                 if ok:
-                    article.screenshot_path = str(shot_path)
+                    article.screenshot_path = str(shot_paths[index])
                 else:
                     self.log_message.emit(
                         f"Screenshot failed: {article.url}"
                         + (f" — {err}" if err else "")
                     )
-
-                if index < total:
-                    time.sleep(1)
 
             if self._cancelled:
                 self.finished_cancelled.emit()

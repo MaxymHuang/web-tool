@@ -50,6 +50,27 @@ def screenshot_subprocess_command(
     return cmd
 
 
+def screenshot_subprocess_batch_command(
+    manifest_path: Path,
+    locale: str | None = None,
+) -> list[str]:
+    worker = frozen_screenshot_worker_path()
+    resolved_manifest = str(manifest_path.resolve())
+    if worker is not None:
+        cmd = [str(worker), "--batch-manifest", resolved_manifest]
+    else:
+        cmd = [
+            sys.executable,
+            "-m",
+            "news_crawler.capture.screenshot",
+            "--batch-manifest",
+            resolved_manifest,
+        ]
+    if locale:
+        cmd.extend(["--locale", locale])
+    return cmd
+
+
 def bundled_browsers_path() -> Path | None:
     """Path to Playwright browsers shipped inside a frozen app bundle."""
     if not is_frozen_app():
